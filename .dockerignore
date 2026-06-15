@@ -1,0 +1,32 @@
+# 构建上下文排除项：减小镜像构建上下文、避免无关与敏感文件进入镜像
+target/
+build/
+.git/
+.github/
+.idea/
+*.iml
+*.iws
+*.ipr
+.mvn/
+.settings/
+.classpath
+.project
+logs/
+*.log
+*.pid
+
+# 敏感文件绝不进入镜像
+.env
+*.pem
+*.key
+*-secret*
+
+# 文档与构建配置无需进入镜像
+docs/
+*.md
+.gitignore
+.gitattributes
+.dockerignore
+Dockerfile
+docker-compose.yml
+LICENSE

@@ -26,6 +26,11 @@
         <java.version>1.8</java.version>
         <mybatis.start.version>2.2.2</mybatis.start.version>
         <hutool-captcha.version>5.8.7</hutool-captcha.version>
+        <jasypt.version>3.0.5</jasypt.version>
+        <jacoco.version>0.8.8</jacoco.version>
+        <!-- 默认激活的 Spring Profile，可被 Maven profile 覆盖（见 <profiles>）。
+             该属性通过 spring-boot-starter-parent 的资源过滤注入 application.yml 中的 @profiles.active@ 占位符。 -->
+        <profiles.active>dev</profiles.active>
     </properties>
 
     <dependencies>
@@ -64,16 +69,73 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- 敏感配置加密：支持在配置文件中使用 ENC(...) 包裹密文（如支付密钥、数据库密码），
+             运行时由 JASYPT_ENCRYPTOR_PASSWORD 环境变量提供的口令解密，避免明文密钥泄露 -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>${jasypt.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
+        <!-- 打成的可执行 jar 使用固定名称，便于 Dockerfile / 部署脚本引用 -->
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- 测试覆盖率报告：mvn test/verify 后报告生成于 target/site/jacoco/index.html -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- 多环境构建 Profile：通过 -Pdev|test|prod 切换，注入 application.yml 中的 spring.profiles.active。
+         默认激活 dev（activeByDefault），生产打包请显式使用 -Pprod。 -->
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profiles.active>prod</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
     <!--  @author 13
           @qq交流群 796794009
           @email 2449207463@qq.com

@@ -1,0 +1,52 @@
+# ============================================================
+# 生产环境（prod）：所有敏感参数来自环境变量 / 加密配置
+# 严禁在本文件写入任何明文密钥或密码——它们由 .env（已 .gitignore）注入
+# ============================================================
+server:
+  port: ${SERVER_PORT:28089}
+  # 生产环境隐藏异常细节，避免向客户端泄露堆栈与内部信息
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+
+spring:
+  thymeleaf:
+    # 生产开启模板缓存以提升性能
+    cache: true
+  datasource:
+    # 数据库连接参数全部来自环境变量；密码必须由部署环境提供（无默认值）
+    url: "jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:newbee_mall_db}?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=true&requireSSL=false&verifyServerCertificate=false&allowMultiQueries=false"
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      # 生产环境放大连接池
+      maximum-pool-size: 30
+
+# 自定义安全开关（由 WebSecurityConfig 读取，默认开启）
+newbee:
+  security:
+    # XSS 过滤：对请求参数进行 HTML 转义
+    xss:
+      enabled: true
+      # 不进行过滤的路径前缀（如静态资源、文件上传接口）
+      exclusions: /admin/dist/**,/admin/plugins/**,/upload/**,/goods-img/**
+    # SQL 注入防护：拦截明显的注入特征
+    sql-injection:
+      enabled: true
+  # 支付接口密钥（密文）。使用生产 JASYPT_ENCRYPTOR_PASSWORD 通过 Jasypt 生成密文后替换。
+  # 生成方式见 .env.example。以下为占位示例，未被任何 Bean 读取，不影响启动。
+  pay:
+    alipay:
+      app-id: ENC(REPLACE_WITH_ENCRYPTED_ALIPAY_APP_ID)
+      private-key: ENC(REPLACE_WITH_ENCRYPTED_ALIPAY_PRIVATE_KEY)
+    wechat:
+      app-id: ENC(REPLACE_WITH_ENCRYPTED_WECHAT_APP_ID)
+      mch-key: ENC(REPLACE_WITH_ENCRYPTED_WECHAT_MCH_KEY)
+
+logging:
+  level:
+    root: warn
+    ltd.newbee.mall: info
+  file:
+    name: ${LOG_PATH:logs}/newbee-mall.log

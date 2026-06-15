@@ -23,3 +23,25 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Logs & runtime ###
+logs/
+*.log
+*.pid
+
+### 本地与敏感配置（禁止入库，避免开发/生产密钥泄露）###
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+application-local.properties
+*-secret*
+*.pem
+*.key
+*.keystore
+*.jks
+
+### OS ###
+.DS_Store
+Thumbs.db
