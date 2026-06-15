@@ -1,0 +1,15 @@
+# ============================================================
+# 测试环境（test）：用于 CI 流水线与集成测试
+# 连接参数可由环境变量覆盖，默认指向本地，方便本机集成测试
+# ============================================================
+spring:
+  thymeleaf:
+    cache: false
+  datasource:
+    url: "jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:newbee_mall_db}?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false&allowMultiQueries=true"
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+
+logging:
+  level:
+    ltd.newbee.mall: info

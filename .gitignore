@@ -23,3 +23,17 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### 敏感配置 ###
+.env
+.env.*
+!.env.example
+application-local.*
+
+### 日志 ###
+*.log
+logs/
+
+### 操作系统 ###
+.DS_Store
+Thumbs.db

@@ -1,0 +1,38 @@
+# ============================================================
+# newbee-mall 公共配置（dev / test / prod 共享）
+# 环境差异见 application-dev.yml / application-test.yml / application-prod.yml
+# 由 application.properties 迁移而来，统一为 YAML 并按环境拆分
+# ============================================================
+server:
+  port: 28089
+
+spring:
+  application:
+    name: newbee-mall
+  # 激活的环境由 Maven profile（-Pdev|test|prod）通过资源过滤注入，默认 dev
+  profiles:
+    active: @spring.profiles.active@
+  datasource:
+    name: newbee-mall-datasource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 10000
+      pool-name: hikariCP
+      max-lifetime: 30000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
+
+# 敏感信息加密（Jasypt）：配置中以 ENC(...) 包裹的密文在运行时解密。
+# 解密口令仅通过环境变量 JASYPT_ENCRYPTOR_PASSWORD 提供，禁止写入仓库。
+# 默认值为空：未使用任何 ENC(...) 时无需提供口令，应用可正常启动。
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}
+    algorithm: PBEWITHHMACSHA512ANDAES_256
+    iv-generator-classname: org.jasypt.iv.RandomIvGenerator

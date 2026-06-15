@@ -1,0 +1,67 @@
+# ============================================================
+# newbee-mall 容器编排（MySQL + 应用）
+# 使用方法：
+#   1. 复制 .env.example 为 .env 并填入实际值
+#   2. docker-compose up -d
+# ============================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: newbee-mall-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-newbee_mall_db}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./src/main/resources/newbee_mall_schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --lower-case-table-names=1
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  newbee-mall:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: newbee-mall-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-newbee_mall_db}
+      MYSQL_USERNAME: ${MYSQL_USERNAME:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      SERVER_PORT: 28089
+      JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_ENCRYPTOR_PASSWORD:-}
+      LOG_PATH: /app/logs
+      TZ: Asia/Shanghai
+    ports:
+      - "${APP_PORT:-28089}:28089"
+    volumes:
+      - app-logs:/app/logs
+      - upload-data:/app/upload
+
+volumes:
+  mysql-data:
+    driver: local
+  app-logs:
+    driver: local
+  upload-data:
+    driver: local
